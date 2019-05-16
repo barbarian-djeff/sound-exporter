@@ -19,10 +19,13 @@ var (
 	logger, _ = zap.NewDevelopment()
 
 	maxAverageVolume = 200
-	volumeThreshold  = 2.0
+	volumeThreshold  = 2.1
 )
 
 type data struct {
+	Message          string
+	MaxAverageVolume int
+	VolumeThreshold  float64
 }
 
 func main() {
@@ -33,7 +36,11 @@ func main() {
 func serveVolumes() {
 	tmpl := template.Must(template.ParseFiles("./html/index.html"))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		data := data{}
+		data := data{
+			"We are good!",
+			maxAverageVolume,
+			volumeThreshold,
+		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		tmpl.Execute(w, data)
 	})

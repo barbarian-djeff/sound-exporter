@@ -1,5 +1,5 @@
 <h3>&nbsp;Last 5 volume's peaks</h3>
-<p style="padding-left: 30px;"><span style="background-color: #ff6600;"><em>"We are good"</em></span></p>
+<p style="padding-left: 30px;"><span style="background-color: #ff6600;"><em>{{.Message}}</em></span></p>
 <table border="1">
     <tbody>
         <tr>
@@ -71,8 +71,8 @@
 </table>
 <p>What is a peak:</p>
 <ul>
-    <li>average volume &gt; 200</li>
-    <li>volume is 2x the average</li>
+    <li>average volume &gt; {{.MaxAverageVolume}}</li>
+    <li>volume is {{.VolumeThreshold}} x the average</li>
 </ul>
 <p>Current status (last 5 minutes):</p>
 <ul>
