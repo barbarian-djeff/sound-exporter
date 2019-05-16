@@ -1,10 +1,13 @@
 package main
 
 import (
-	"bufio"
 	"go.uber.org/zap"
+
+	"bufio"
+	"html/template"
 	"io"
 	"math"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -14,15 +17,34 @@ import (
 var (
 	re        = regexp.MustCompile(`\s*(\d*)\s*`)
 	logger, _ = zap.NewDevelopment()
+
+	maxAverageVolume = 200
+	volumeThreshold  = 2.0
 )
 
-var (
-	max, sum, count int
-)
+type data struct {
+}
 
 func main() {
-	logger.Info("start reading")
+	go readVolumes()
+	serveVolumes()
+}
+
+func serveVolumes() {
+	tmpl := template.Must(template.ParseFiles("./html/index.html"))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		data := data{}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		tmpl.Execute(w, data)
+	})
+	logger.Fatal("fail to serve", zap.Error(http.ListenAndServe("localhost:8090", nil)))
+}
+
+func readVolumes() {
+	logger.Info("read volumes")
 	reader := bufio.NewReader(os.Stdin)
+
+	var max, sum, count int
 	for {
 		input, err := reader.ReadString('\r')
 		if err != nil {
