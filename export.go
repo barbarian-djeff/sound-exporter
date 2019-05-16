@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"go.uber.org/zap"
 	"io"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
@@ -15,10 +16,12 @@ var (
 	logger, _ = zap.NewDevelopment()
 )
 
+var (
+	max, sum, count int
+)
+
 func main() {
-
 	logger.Info("start reading")
-
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		input, err := reader.ReadString('\r')
@@ -28,16 +31,22 @@ func main() {
 			}
 			logger.Fatal("stop", zap.Error(err))
 		}
-
 		if len(strings.TrimSpace(input)) > 0 {
 			v, ok := readVolume(input)
 			if !ok {
 				break
 			}
-			logger.Info("record", zap.Int("volume", v))
+
+			count++
+			sum += v
+			avg := float64(sum) / float64(count)
+			dev := math.Abs(float64(v) - avg)
+			if v > max {
+				max = v
+			}
+			logger.Info("record", zap.Int("volume", v), zap.Int("max", max), zap.Float64("average", avg), zap.Float64("dev", dev))
 		}
 	}
-
 	logger.Info("finish reading")
 }
 
@@ -53,6 +62,5 @@ func readVolume(input string) (int, bool) {
 		logger.Error("fail to parse number", zap.Error(err), zap.String("number", number))
 		return 0, false
 	}
-
 	return volume, true
 }
