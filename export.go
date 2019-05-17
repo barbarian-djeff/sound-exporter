@@ -85,8 +85,10 @@ func newData(v int, avg float64) data {
 
 func main() {
 	peakChannel := make(chan data)
+	minuteChannel := make(chan data)
+	go collectMinutes(minuteChannel)
 	go collectPeaks(peakChannel)
-	go readVolumes(peakChannel)
+	go readVolumes(peakChannel, minuteChannel)
 	serveVolumes()
 }
 
@@ -109,7 +111,14 @@ func serveVolumes() {
 func collectPeaks(dataCh chan data) {
 	for {
 		d := <-dataCh
-		logger.Info("record", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
+		logger.Info("collect peak", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
+	}
+}
+
+func collectMinutes(dataCh chan data) {
+	for {
+		d := <-dataCh
+		logger.Info("collect minutes", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
 	}
 }
 
