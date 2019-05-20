@@ -1,10 +1,8 @@
 package main
 
 import (
-	"go.uber.org/zap"
-	"time"
-
 	"bufio"
+	"go.uber.org/zap"
 	"html/template"
 	"io"
 	"net/http"
@@ -12,71 +10,28 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 )
 
 var (
-	re        = regexp.MustCompile(`\s*(\d*)\s*`)
-	logger, _ = zap.NewDevelopment()
-
+	re               = regexp.MustCompile(`\s*(\d*)\s*`)
+	logger, _        = zap.NewDevelopment()
 	maxAverageVolume = 200
 	volumeThreshold  = 2.1
-
-	peaks   = []peak{}
-	minutes = []minute{}
 )
 
-type color string
-
-const (
-	blue  color = "color: #0000ff;"
-	red   color = "color: #ff0000;"
-	green color = "color: #00ff00;"
+var (
+	mux     sync.Mutex
+	peaks   = []Peak{}
+	minutes = []Minute{}
 )
 
-type peak struct {
-	time    string
-	current volume
-	average volume
-}
-
-func newPeak(t time.Time, curVol int, curCol color, avgVol int, avgCol color) peak {
-	return peak{
-		t.Format("15:04:05"),
-		volume{curVol, curCol},
-		volume{avgVol, avgCol},
-	}
-}
-
-type minute struct {
-	time    string
-	average volume
-}
-
-func newMinute(t time.Time, v int, c color) minute {
-	return minute{
-		t.Format("15:04"),
-		volume{v, c},
-	}
-}
-
-type volume struct {
-	value int
-	color color
-}
-
-type templateData struct {
-	message          string
-	maxAverageVolume int
-	volumeThreshold  float64
-	peaks            []peak
-	minutes          []minute
-}
-
-// data is passed by the reader to the collectors (peak and minute)
+// data is passed by the reader to the collectors (peak and minute) for a specific time
 type data struct {
 	time   time.Time
-	volume int
-	avg    float64
+	volume int     // current volume at 'time'
+	avg    float64 // global average at 'time'
 }
 
 func newData(v int, avg float64) data {
@@ -95,7 +50,9 @@ func main() {
 func serveVolumes() {
 	tmpl := template.Must(template.ParseFiles("./html/index.html"))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		data := templateData{
+		mux.Lock()
+		defer mux.Unlock()
+		data := TemplateData{
 			"We are good!",
 			maxAverageVolume,
 			volumeThreshold,
@@ -112,13 +69,39 @@ func collectPeaks(dataCh chan data) {
 	for {
 		d := <-dataCh
 		logger.Info("collect peak", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
+		mux.Lock()
+		mux.Unlock()
 	}
 }
+
+var (
+	currentMinute = -1
+	mSum          = 0.
+	mCount        = 1.
+)
 
 func collectMinutes(dataCh chan data) {
 	for {
 		d := <-dataCh
-		logger.Info("collect minutes", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
+
+		m := d.time.Minute()
+		if m != currentMinute {
+			nm := newMinute(d.time, mSum/mCount, Green)
+
+			// store info
+			mux.Lock()
+			minutes = add(minutes, nm)
+			mux.Unlock()
+			logger.Info("minute collected", zap.String("time", nm.Time), zap.Float64("avg", nm.Average.Value))
+
+			// next minute: reset counters
+			currentMinute = m
+			mSum = float64(d.volume)
+			mCount = 1
+		} else {
+			mSum += float64(d.volume)
+			mCount++
+		}
 	}
 }
 

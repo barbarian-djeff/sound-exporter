@@ -7,31 +7,13 @@
             <td>Volume</td>
             <td>Average</td>
         </tr>
+        {{range .Minutes}}
         <tr>
-            <td>9:55:45</td>
+            <td>{{.Time}}</td>
             <td><span style="color: #0000ff;">200</span></td>
             <td>100</td>
         </tr>
-        <tr>
-            <td>9:55:45</td>
-            <td><span style="color: #00ff00;">200</span></td>
-            <td>100</td>
-        </tr>
-        <tr>
-            <td>19:55:45</td>
-            <td><span style="color: #ff0000;">200</span></td>
-            <td><span style="color: #ff0000;">200</span></td>
-        </tr>
-        <tr>
-            <td>9:55:45</td>
-            <td>200</td>
-            <td>100</td>
-        </tr>
-        <tr>
-            <td>9:55:45</td>
-            <td>200</td>
-            <td>100</td>
-        </tr>
+        {{end}}
     </tbody>
 </table>
 <h3>&nbsp;Last 5 minutes</h3>
