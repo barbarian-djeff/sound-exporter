@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <h3>&nbsp;Last 5 volume's peaks</h3>
 <p style="padding-left: 30px;"><span style="background-color: #ff6600;"><em>{{.Message}}</em></span></p>
 <table border="1">
@@ -7,11 +8,11 @@
             <td>Volume</td>
             <td>Average</td>
         </tr>
-        {{range .Minutes}}
+        {{range .Peaks}}
         <tr>
             <td>{{.Time}}</td>
-            <td><span style="color: #0000ff;">200</span></td>
-            <td>100</td>
+            <td><span style="{{.Current.Color}}">{{printf "%.2f" .Current.Value}}</span></td>
+            <td><span style="{{.Average.Color}}">{{printf "%.2f" .Average.Value}}</span></td>
         </tr>
         {{end}}
     </tbody>
@@ -23,26 +24,12 @@
             <td>Time</td>
             <td>Average volume</td>
         </tr>
+        {{range .Minutes}}
         <tr>
-            <td>9:55</td>
-            <td><span style="color: #0000ff;">200</span></td>
+            <td>{{.Time}}</td>
+            <td><span style={{.Average.Color}}>{{printf "%.2f" .Average.Value}}</span></td>
         </tr>
-        <tr>
-            <td>9:56</td>
-            <td><span style="color: #00ff00;">200</span></td>
-        </tr>
-        <tr>
-            <td>10:45</td>
-            <td><span style="color: #ff0000;">200</span></td>
-        </tr>
-        <tr>
-            <td>10:45</td>
-            <td>200</td>
-        </tr>
-        <tr>
-            <td>10:45</td>
-            <td>200</td>
-        </tr>
+        {{end}}
     </tbody>
 </table>
 <p>What is a peak:</p>

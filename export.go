@@ -86,7 +86,7 @@ func collectMinutes(dataCh chan data) {
 
 		m := d.time.Minute()
 		if m != currentMinute {
-			nm := newMinute(d.time, mSum/mCount, Green)
+			nm := newMinute(d.time, mSum/mCount, Black)
 
 			// store info
 			mux.Lock()

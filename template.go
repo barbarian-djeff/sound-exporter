@@ -1,14 +1,15 @@
 package main
 
-import "time"
-
-type Color string
+import (
+	"html/template"
+	"time"
+)
 
 const (
-	Blue  Color = "color: #0000ff;"
-	Red   Color = "color: #ff0000;"
-	Green Color = "color: #00ff00;"
-	Black Color = ""
+	Blue  template.CSS = "color: #0000ff;"
+	Red   template.CSS = "color: #ff0000;"
+	Green template.CSS = "color: #00ff00;"
+	Black template.CSS = ""
 )
 
 type Peak struct {
@@ -17,7 +18,7 @@ type Peak struct {
 	Average Average
 }
 
-func newPeak(t time.Time, curVol int, curCol Color, avgVol float64, avgCol Color) Peak {
+func newPeak(t time.Time, curVol int, curCol template.CSS, avgVol float64, avgCol template.CSS) Peak {
 	return Peak{
 		t.Format("15:04:05"),
 		Volume{curVol, curCol},
@@ -30,7 +31,7 @@ type Minute struct {
 	Average Average
 }
 
-func newMinute(t time.Time, a float64, c Color) Minute {
+func newMinute(t time.Time, a float64, c template.CSS) Minute {
 	return Minute{
 		t.Format("15:04"),
 		Average{a, c},
@@ -47,10 +48,10 @@ type TemplateData struct {
 
 type Volume struct {
 	Value int
-	Color Color
+	Color template.CSS
 }
 
 type Average struct {
 	Value float64
-	Color Color
+	Color template.CSS
 }
