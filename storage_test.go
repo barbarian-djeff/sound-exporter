@@ -8,19 +8,19 @@ import (
 
 func Test_add(t *testing.T) {
 	minutes = []Minute{}
-	minutes = add(minutes, m("1"))
+	minutes = addMinute(minutes, m("1"))
 	equal(t, []string{"1"}, minutes)
 
-	minutes = add(minutes, m("2"))
-	minutes = add(minutes, m("3"))
-	minutes = add(minutes, m("4"))
+	minutes = addMinute(minutes, m("2"))
+	minutes = addMinute(minutes, m("3"))
+	minutes = addMinute(minutes, m("4"))
 	equal(t, []string{"4", "3", "2", "1"}, minutes)
 
-	minutes = add(minutes, m("5"))
+	minutes = addMinute(minutes, m("5"))
 	equal(t, []string{"5", "4", "3", "2", "1"}, minutes)
 
-	minutes = add(minutes, m("6"))
-	minutes = add(minutes, m("7"))
+	minutes = addMinute(minutes, m("6"))
+	minutes = addMinute(minutes, m("7"))
 	equal(t, []string{"7", "6", "5", "4", "3"}, minutes)
 }
 

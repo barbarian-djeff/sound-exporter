@@ -11,7 +11,7 @@
         {{range .Peaks}}
         <tr>
             <td>{{.Time}}</td>
-            <td><span style="{{.Current.Color}}">{{printf "%.2f" .Current.Value}}</span></td>
+            <td><span style="{{.Current.Color}}">{{.Current.Value}}</span></td>
             <td><span style="{{.Average.Color}}">{{printf "%.2f" .Average.Value}}</span></td>
         </tr>
         {{end}}

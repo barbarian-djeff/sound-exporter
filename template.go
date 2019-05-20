@@ -40,7 +40,7 @@ func newMinute(t time.Time, a float64, c template.CSS) Minute {
 
 type TemplateData struct {
 	Message          string
-	MaxAverageVolume int
+	MaxAverageVolume float64
 	VolumeThreshold  float64
 	Peaks            []Peak
 	Minutes          []Minute

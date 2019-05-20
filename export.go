@@ -17,7 +17,7 @@ import (
 var (
 	re               = regexp.MustCompile(`\s*(\d*)\s*`)
 	logger, _        = zap.NewDevelopment()
-	maxAverageVolume = 200
+	maxAverageVolume = 200.0
 	volumeThreshold  = 2.1
 )
 
@@ -68,9 +68,13 @@ func serveVolumes() {
 func collectPeaks(dataCh chan data) {
 	for {
 		d := <-dataCh
-		logger.Info("collect peak", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
-		mux.Lock()
-		mux.Unlock()
+		if float64(d.volume) > volumeThreshold*d.avg || d.avg > maxAverageVolume {
+			p := newPeak(d.time, d.volume, Black, d.avg, Black)
+			logger.Info("peak collected", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
+			mux.Lock()
+			peaks = addPeak(peaks, p)
+			mux.Unlock()
+		}
 	}
 }
 
@@ -90,7 +94,7 @@ func collectMinutes(dataCh chan data) {
 
 			// store info
 			mux.Lock()
-			minutes = add(minutes, nm)
+			minutes = addMinute(minutes, nm)
 			mux.Unlock()
 			logger.Info("minute collected", zap.String("time", nm.Time), zap.Float64("avg", nm.Average.Value))
 
