@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"time"
 )
@@ -31,9 +32,10 @@ type Minute struct {
 	Average Average
 }
 
-func newMinute(t time.Time, a float64, c template.CSS) Minute {
+func newMinute(m int, a float64, c template.CSS) Minute {
+	h := time.Now().Hour()
 	return Minute{
-		t.Format("15:04"),
+		fmt.Sprintf("%d:%d", h, m),
 		Average{a, c},
 	}
 }

@@ -106,19 +106,20 @@ func updateMessage() string {
 	return m
 }
 
-var (
-	currentMinute = -1
-	mSum          = 0.
-	mCount        = 1.
-)
-
 func collectMinutes(dataCh chan data) {
+	currentMinute := -1
+	mSum := 0.
+	mCount := 1.
+
 	for {
 		d := <-dataCh
 
 		m := d.time.Minute()
+		if currentMinute == -1 {
+			currentMinute = m
+		}
 		if m != currentMinute {
-			nm := newMinute(d.time, mSum/mCount, Black)
+			nm := newMinute(currentMinute, mSum/mCount, Black)
 
 			// store info
 			mux.Lock()
