@@ -25,6 +25,7 @@ var (
 	mux     sync.Mutex
 	peaks   = []Peak{}
 	minutes = []Minute{}
+	message = "We are good!"
 )
 
 // data is passed by the reader to the collectors (peak and minute) for a specific time
@@ -53,7 +54,7 @@ func serveVolumes() {
 		mux.Lock()
 		defer mux.Unlock()
 		data := TemplateData{
-			"We are good!",
+			message,
 			maxAverageVolume,
 			volumeThreshold,
 			peaks,
@@ -73,9 +74,34 @@ func collectPeaks(dataCh chan data) {
 			logger.Info("peak collected", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
 			mux.Lock()
 			peaks = addPeak(peaks, p)
+			message = updateMessage()
 			mux.Unlock()
 		}
 	}
+}
+
+const (
+	no   = "we are good"
+	one  = "we can do better"
+	more = "time to move elsewhere"
+)
+
+func updateMessage() string {
+	m := no
+	fiveAgo := time.Now().Add(-5 * time.Minute).Format("15:04:05")
+	for _, p := range peaks {
+		if p.Time > fiveAgo {
+			switch m {
+			case no:
+				m = one
+			case one:
+				m = more
+			default:
+				return more
+			}
+		}
+	}
+	return m
 }
 
 var (
