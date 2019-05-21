@@ -20,7 +20,7 @@
         </div>
         <div class="row">
             <div class="col">
-                <h4>Last 5 volume's peaks</h4>
+                <h4>Peaks</h4>
                 <table border="1">
                     <tbody>
                         <tr>
@@ -39,7 +39,7 @@
                 </table>
             </div>
             <div class="col">
-                <h4>Last 5 minutes</h4>
+                <h4>History</h4>
                 <table border="1">
                     <tbody>
                         <tr>
@@ -59,12 +59,12 @@
         <div class="row">
             <div class="col">
                 <em>
-                    <p>What is a peak:</p>
+                    <p>We have a peak when the volume is &gt;</p>
                     <ul>
-                        <li>average volume &gt; {{.MaxAverageVolume}}</li>
-                        <li>volume is {{.VolumeThreshold}} x the average</li>
+                        <li>{{.MaxVolume}}</li>
+                        <li>{{.VolumeThreshold}} x the average ({{printf "%.2f" .AvgVolume}})</li>
                     </ul>
-                    <p>Current status (last 5 minutes):</p>
+                    <p>Current status:</p>
                     <ul>
                         <li>we are good: no peak</li>
                         <li>we can do better: one peak</li>

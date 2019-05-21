@@ -15,17 +15,18 @@ import (
 )
 
 var (
-	re               = regexp.MustCompile(`\s*(\d*)\s*`)
-	logger, _        = zap.NewDevelopment()
-	maxAverageVolume = 200.0
-	volumeThreshold  = 2.1
+	re              = regexp.MustCompile(`\s*(\d*)\s*`)
+	logger, _       = zap.NewDevelopment()
+	maxVolume       = 250
+	volumeThreshold = 3.
 )
 
 var (
-	mux     sync.Mutex
-	peaks   = []Peak{}
-	minutes = []Minute{}
-	message = "We are good!"
+	mux       sync.Mutex
+	avgVolume = 0.
+	peaks     = []Peak{}
+	minutes   = []Minute{}
+	message   = "We are good!"
 )
 
 // data is passed by the reader to the collectors (peak and minute) for a specific time
@@ -49,13 +50,14 @@ func main() {
 }
 
 func serveVolumes() {
-	tmpl := template.Must(template.ParseFiles("./html/index.html"))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		tmpl := template.Must(template.ParseFiles("./html/index.html"))
 		mux.Lock()
 		defer mux.Unlock()
 		data := TemplateData{
 			message,
-			maxAverageVolume,
+			maxVolume,
+			avgVolume,
 			volumeThreshold,
 			peaks,
 			minutes,
@@ -71,12 +73,13 @@ func serveVolumes() {
 func collectPeaks(dataCh chan data) {
 	for {
 		d := <-dataCh
-		if float64(d.volume) > volumeThreshold*d.avg || d.avg > maxAverageVolume {
+		if float64(d.volume) > volumeThreshold*d.avg || d.volume > maxVolume {
 			p := newPeak(d.time, d.volume, Black, d.avg, Black)
 			logger.Info("peak collected", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
 			mux.Lock()
 			peaks = addPeak(peaks, p)
 			message = updateMessage()
+			avgVolume = d.avg
 			mux.Unlock()
 		}
 	}
