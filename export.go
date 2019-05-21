@@ -63,6 +63,8 @@ func serveVolumes() {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		tmpl.Execute(w, data)
 	})
+	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./html/css/"))))
+	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./html/js/"))))
 	logger.Fatal("fail to serve", zap.Error(http.ListenAndServe("localhost:8090", nil)))
 }
 

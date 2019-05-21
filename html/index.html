@@ -1,45 +1,82 @@
 <!DOCTYPE html>
-<h3>&nbsp;Last 5 volume's peaks</h3>
-<p style="padding-left: 30px;"><span style="background-color: #ff6600;"><em>{{.Message}}</em></span></p>
-<table border="1">
-    <tbody>
-        <tr>
-            <td>Time</td>
-            <td>Volume</td>
-            <td>Average</td>
-        </tr>
-        {{range .Peaks}}
-        <tr>
-            <td>{{.Time}}</td>
-            <td><span style="{{.Current.Color}}">{{.Current.Value}}</span></td>
-            <td><span style="{{.Average.Color}}">{{printf "%.2f" .Average.Value}}</span></td>
-        </tr>
-        {{end}}
-    </tbody>
-</table>
-<h3>&nbsp;Last 5 minutes</h3>
-<table border="1">
-    <tbody>
-        <tr>
-            <td>Time</td>
-            <td>Average volume</td>
-        </tr>
-        {{range .Minutes}}
-        <tr>
-            <td>{{.Time}}</td>
-            <td><span style={{.Average.Color}}>{{printf "%.2f" .Average.Value}}</span></td>
-        </tr>
-        {{end}}
-    </tbody>
-</table>
-<p>What is a peak:</p>
-<ul>
-    <li>average volume &gt; {{.MaxAverageVolume}}</li>
-    <li>volume is {{.VolumeThreshold}} x the average</li>
-</ul>
-<p>Current status (last 5 minutes):</p>
-<ul>
-    <li>we are good: no peak</li>
-    <li>we can do better: one peak</li>
-    <li>time to move elsewhere: at least two peaks</li>
-</ul>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Volume</title>
+    <link rel="stylesheet" href="css/fontawesome.min.css" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/export.css" />
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <p style="padding-left: 30px;"><span style="background-color: #ff6600;"><em>{{.Message}}</em></span></p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <h3>&nbsp;Last 5 volume's peaks</h3>
+                <table border="1">
+                    <tbody>
+                        <tr>
+                            <td>Time</td>
+                            <td>Volume</td>
+                            <td>Average</td>
+                        </tr>
+                        {{range .Peaks}}
+                        <tr>
+                            <td>{{.Time}}</td>
+                            <td><span style="{{.Current.Color}}">{{.Current.Value}}</span></td>
+                            <td><span style="{{.Average.Color}}">{{printf "%.2f" .Average.Value}}</span></td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+            <div class="col">
+                <h3>&nbsp;Last 5 minutes</h3>
+                <table border="1">
+                    <tbody>
+                        <tr>
+                            <td>Time</td>
+                            <td>Average volume</td>
+                        </tr>
+                        {{range .Minutes}}
+                        <tr>
+                            <td>{{.Time}}</td>
+                            <td><span style={{.Average.Color}}>{{printf "%.2f" .Average.Value}}</span></td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <p>What is a peak:</p>
+                <ul>
+                    <li>average volume &gt; {{.MaxAverageVolume}}</li>
+                    <li>volume is {{.VolumeThreshold}} x the average</li>
+                </ul>
+                <p>Current status (last 5 minutes):</p>
+                <ul>
+                    <li>we are good: no peak</li>
+                    <li>we can do better: one peak</li>
+                    <li>time to move elsewhere: at least two peaks</li>
+                </ul>
+
+
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery-3.3.1.slim.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+</body>
+
+</html>
