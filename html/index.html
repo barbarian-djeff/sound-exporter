@@ -15,12 +15,12 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <p style="padding-left: 30px;"><span style="background-color: #ff6600;"><em>{{.Message}}</em></span></p>
+                <p class="text-white"><span style="background-color: #ff6600;"><em>{{.Message}}</em></span></p>
             </div>
         </div>
         <div class="row">
             <div class="col">
-                <h3>&nbsp;Last 5 volume's peaks</h3>
+                <h4>Last 5 volume's peaks</h4>
                 <table border="1">
                     <tbody>
                         <tr>
@@ -39,7 +39,7 @@
                 </table>
             </div>
             <div class="col">
-                <h3>&nbsp;Last 5 minutes</h3>
+                <h4>Last 5 minutes</h4>
                 <table border="1">
                     <tbody>
                         <tr>
@@ -58,19 +58,19 @@
         </div>
         <div class="row">
             <div class="col">
-                <p>What is a peak:</p>
-                <ul>
-                    <li>average volume &gt; {{.MaxAverageVolume}}</li>
-                    <li>volume is {{.VolumeThreshold}} x the average</li>
-                </ul>
-                <p>Current status (last 5 minutes):</p>
-                <ul>
-                    <li>we are good: no peak</li>
-                    <li>we can do better: one peak</li>
-                    <li>time to move elsewhere: at least two peaks</li>
-                </ul>
-
-
+                <em>
+                    <p>What is a peak:</p>
+                    <ul>
+                        <li>average volume &gt; {{.MaxAverageVolume}}</li>
+                        <li>volume is {{.VolumeThreshold}} x the average</li>
+                    </ul>
+                    <p>Current status (last 5 minutes):</p>
+                    <ul>
+                        <li>we are good: no peak</li>
+                        <li>we can do better: one peak</li>
+                        <li>time to move elsewhere: at least two peaks</li>
+                    </ul>
+                </em>
             </div>
         </div>
     </div>

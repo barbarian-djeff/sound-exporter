@@ -22,3 +22,18 @@ thead {
 table thead th {
   border-bottom: 0;
 }
+table td,
+table th {
+  padding: 5px 20px;
+  vertical-align: middle;
+}
+
+.col {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.row {
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
