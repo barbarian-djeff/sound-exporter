@@ -1,8 +1,10 @@
 package main
 
 import (
-	"bufio"
+	"github.com/wcharczuk/go-chart"
 	"go.uber.org/zap"
+
+	"bufio"
 	"html/template"
 	"io"
 	"net/http"
@@ -50,6 +52,7 @@ func main() {
 }
 
 func serveVolumes() {
+	http.HandleFunc("/chart.png", drawChart)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl := template.Must(template.ParseFiles("./html/index.html"))
 		mux.Lock()
@@ -68,6 +71,39 @@ func serveVolumes() {
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./html/css/"))))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./html/js/"))))
 	logger.Fatal("fail to serve", zap.Error(http.ListenAndServe("localhost:8090", nil)))
+}
+
+func drawChart(res http.ResponseWriter, req *http.Request) {
+	/*
+	   This is an example of using the `TimeSeries` to automatically coerce time.Time values into a continuous xrange.
+	   Note: chart.TimeSeries implements `ValueFormatterProvider` and as a result gives the XAxis the appropriate formatter to use for the ticks.
+	*/
+	graph := chart.Chart{
+		XAxis: chart.XAxis{
+			Style: chart.StyleShow(),
+		},
+		Series: []chart.Series{
+			chart.TimeSeries{
+				XValues: []time.Time{
+					time.Now().AddDate(0, 0, -10),
+					time.Now().AddDate(0, 0, -9),
+					time.Now().AddDate(0, 0, -8),
+					time.Now().AddDate(0, 0, -7),
+					time.Now().AddDate(0, 0, -6),
+					time.Now().AddDate(0, 0, -5),
+					time.Now().AddDate(0, 0, -4),
+					time.Now().AddDate(0, 0, -3),
+					time.Now().AddDate(0, 0, -2),
+					time.Now().AddDate(0, 0, -1),
+					time.Now(),
+				},
+				YValues: []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0},
+			},
+		},
+	}
+
+	res.Header().Set("Content-Type", "image/png")
+	graph.Render(chart.PNG, res)
 }
 
 func collectPeaks(dataCh chan data) {
