@@ -28,7 +28,11 @@ var (
 	avgVolume = 0.
 	peaks     = []Peak{}
 	minutes   = []Minute{}
-	message   = "We are good!"
+	serie     = chart.TimeSeries{
+		XValues: []time.Time{},
+		YValues: []float64{},
+	}
+	message = "We are good!"
 )
 
 // data is passed by the reader to the collectors (peak and minute) for a specific time
@@ -74,41 +78,44 @@ func serveVolumes() {
 }
 
 func drawChart(res http.ResponseWriter, req *http.Request) {
-	/*
-	   This is an example of using the `TimeSeries` to automatically coerce time.Time values into a continuous xrange.
-	   Note: chart.TimeSeries implements `ValueFormatterProvider` and as a result gives the XAxis the appropriate formatter to use for the ticks.
-	*/
 	graph := chart.Chart{
 		XAxis: chart.XAxis{
+			Style:          chart.StyleShow(),
+			ValueFormatter: hmsFormatter,
+		},
+		YAxis: chart.YAxis{
 			Style: chart.StyleShow(),
 		},
 		Series: []chart.Series{
-			chart.TimeSeries{
-				XValues: []time.Time{
-					time.Now().AddDate(0, 0, -10),
-					time.Now().AddDate(0, 0, -9),
-					time.Now().AddDate(0, 0, -8),
-					time.Now().AddDate(0, 0, -7),
-					time.Now().AddDate(0, 0, -6),
-					time.Now().AddDate(0, 0, -5),
-					time.Now().AddDate(0, 0, -4),
-					time.Now().AddDate(0, 0, -3),
-					time.Now().AddDate(0, 0, -2),
-					time.Now().AddDate(0, 0, -1),
-					time.Now(),
-				},
-				YValues: []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0},
-			},
+			serie,
 		},
 	}
-
 	res.Header().Set("Content-Type", "image/png")
 	graph.Render(chart.PNG, res)
+}
+
+func hmsFormatter(v interface{}) string {
+	if typed, isTyped := v.(float64); isTyped {
+		return time.Unix(0, int64(typed)).Format("15:04:05")
+	}
+	return "x"
+}
+
+func addVolume(t time.Time, v float64) {
+	serie.XValues = append(serie.XValues, t)
+	serie.YValues = append(serie.YValues, v)
+	if len(serie.YValues) > 30 {
+		serie.XValues = serie.XValues[1:]
+		serie.YValues = serie.YValues[1:]
+	}
 }
 
 func collectPeaks(dataCh chan data) {
 	for {
 		d := <-dataCh
+		mux.Lock()
+		addVolume(d.time, float64(d.volume))
+		mux.Unlock()
 		if float64(d.volume) > volumeThreshold*d.avg || d.volume > maxVolume {
 			p := newPeak(d.time, d.volume, Black, d.avg, Black)
 			logger.Info("peak collected", zap.Time("time", d.time), zap.Int("vol", d.volume), zap.Float64("avg", d.avg))
