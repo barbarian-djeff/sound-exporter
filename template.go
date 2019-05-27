@@ -15,14 +15,14 @@ const (
 
 type Peak struct {
 	Time    string
-	Current Volume
+	Current Average
 	Average Average
 }
 
-func newPeak(t time.Time, curVol int, curCol template.CSS, avgVol float64, avgCol template.CSS) Peak {
+func newPeak(t time.Time, curVol float64, curCol template.CSS, avgVol float64, avgCol template.CSS) Peak {
 	return Peak{
 		t.Format("15:04:05"),
-		Volume{curVol, curCol},
+		Average{curVol, curCol},
 		Average{avgVol, avgCol},
 	}
 }
@@ -42,7 +42,7 @@ func newMinute(m int, a float64, c template.CSS) Minute {
 
 type TemplateData struct {
 	Message         string
-	MaxVolume       int
+	MaxVolume       float64
 	AvgVolume       float64
 	VolumeThreshold float64
 	Peaks           []Peak

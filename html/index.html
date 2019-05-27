@@ -67,7 +67,7 @@
                 <em>
                     <p>We have a peak when the volume is &gt;</p>
                     <ul>
-                        <li>{{.MaxVolume}}</li>
+                        <li>{{printf "%.0f" .MaxVolume}}</li>
                         <li>{{.VolumeThreshold}} x the average ({{printf "%.2f" .AvgVolume}})</li>
                     </ul>
                     <p>Current status:</p>
