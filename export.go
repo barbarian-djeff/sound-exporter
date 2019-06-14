@@ -1,17 +1,14 @@
 package main
 
 import (
+	"github.com/gordonklaus/portaudio"
 	"github.com/wcharczuk/go-chart"
 	"go.uber.org/zap"
 
-	"bufio"
+	"fmt"
 	"html/template"
-	"io"
 	"net/http"
-	"os"
 	"regexp"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -46,13 +43,55 @@ func newData(v int, avg float64) data {
 	return data{time.Now(), v, avg}
 }
 
-func main() {
-	peakChannel := make(chan data)
-	minuteChannel := make(chan data)
-	go collectMinutes(minuteChannel)
-	go collectPeaks(peakChannel)
-	go readVolumes(peakChannel, minuteChannel)
-	serveVolumes()
+func readFromPortAudio(stop chan int, stopped chan int, channels ...chan data) {
+	logger.Info("read from portaudio")
+
+	portaudio.Initialize()
+	defer portaudio.Terminate()
+	in := make([]int32, 64)
+	stream, err := portaudio.OpenDefaultStream(1, 0, 44100, len(in), in)
+	chk(err)
+	defer stream.Close()
+
+	chk(stream.Start())
+
+	sa := NewSoundAggregator()
+	count := 0
+	var sum int
+	for {
+		err := stream.Read()
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			rms, ok := sa.Rms(in)
+			if ok {
+				vol := int(rms)
+				fmt.Printf("%d\n", rms)
+				count++
+				sum += vol
+				avg := float64(sum) / float64(count)
+				data := newData(vol, avg)
+				for _, ch := range channels {
+					ch <- data
+				}
+			}
+		}
+
+		select {
+		case <-stop:
+			fmt.Println("stop portaudio streaming")
+			chk(stream.Stop())
+			stopped <- 1
+			return
+		default:
+		}
+	}
+}
+
+func chk(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 func serveVolumes() {
@@ -188,50 +227,4 @@ func collectMinutes(dataCh chan data) {
 			mCount++
 		}
 	}
-}
-
-func readVolumes(channels ...chan data) {
-	logger.Info("read volumes")
-	reader := bufio.NewReader(os.Stdin)
-
-	var sum, count int
-	for {
-		input, err := reader.ReadString('\r')
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			logger.Fatal("stop", zap.Error(err))
-		}
-		if len(strings.TrimSpace(input)) > 0 {
-			vol, ok := readVolume(input)
-			if !ok {
-				break
-			}
-
-			count++
-			sum += vol
-			avg := float64(sum) / float64(count)
-			data := newData(vol, avg)
-			for _, ch := range channels {
-				ch <- data
-			}
-		}
-	}
-	logger.Info("finish reading")
-}
-
-func readVolume(input string) (int, bool) {
-	matches := re.FindStringSubmatch(input)
-	if len(matches) < 2 {
-		logger.Error("fail to find number", zap.String("input", input))
-		return 0, false
-	}
-	number := matches[1]
-	volume, err := strconv.Atoi(number)
-	if err != nil {
-		logger.Error("fail to parse number", zap.Error(err), zap.String("number", number))
-		return 0, false
-	}
-	return volume, true
 }
