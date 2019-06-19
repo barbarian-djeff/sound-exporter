@@ -16,7 +16,7 @@ import (
 var (
 	re              = regexp.MustCompile(`\s*(\d*)\s*`)
 	logger, _       = zap.NewDevelopment()
-	maxVolume       = 250.
+	maxVolume       = 100000.
 	volumeThreshold = 3.
 )
 
@@ -64,7 +64,7 @@ func readFromPortAudio(stop chan int, stopped chan int, channels ...chan data) {
 			fmt.Println(err)
 		} else {
 			rms, ok := sa.Rms(in)
-			if ok {
+			if ok && rms >= 0 {
 				vol := int(rms)
 				fmt.Printf("%d\n", rms)
 				count++
