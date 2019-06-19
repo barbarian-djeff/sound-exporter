@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -21,7 +20,6 @@ func (d *timeSerieData) collect(data data) (ready bool, volume float64, end time
 	elapsed := data.time.Sub(d.start)
 	if elapsed.Seconds() > tsCollectingTimeSec {
 		avg := float64(d.total) / float64(d.count)
-		logger.Info("elapsed " + fmt.Sprintf("%f", avg))
 		return true, avg, data.time
 	}
 	d.count++
