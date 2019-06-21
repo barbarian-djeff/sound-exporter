@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gordonklaus/portaudio"
+	"os"
+	"os/signal"
 	"time"
 )
 
@@ -17,7 +19,7 @@ func newData(v int, avg float64) data {
 	return data{time.Now(), v, avg}
 }
 
-func readFromPortAudio(stop chan int, stopped chan int, channels ...chan data) {
+func readFromPortAudio(sync portaudioSync, channels ...chan data) {
 	logger.Info("read from portaudio")
 
 	portaudio.Initialize()
@@ -50,13 +52,42 @@ func readFromPortAudio(stop chan int, stopped chan int, channels ...chan data) {
 			}
 		}
 
-		select {
-		case <-stop:
-			fmt.Println("stop portaudio streaming")
-			chk(stream.Stop())
-			stopped <- 1
+		if sync.stopStream(stream) {
 			return
-		default:
 		}
 	}
+}
+
+type portaudioSync struct {
+	sig     chan os.Signal
+	stop    chan int
+	stopped chan int
+}
+
+func newSync() portaudioSync {
+	s := portaudioSync{
+		sig:     make(chan os.Signal, 1),
+		stop:    make(chan int, 1),
+		stopped: make(chan int, 1),
+	}
+	signal.Notify(s.sig, os.Interrupt, os.Kill)
+	return s
+}
+
+func (s portaudioSync) waitInterrupt() {
+	<-s.sig
+	s.stop <- 1 // say to portaudio to close the stream
+	<-s.stopped // wait for the stream to close
+}
+
+func (s portaudioSync) stopStream(str *portaudio.Stream) bool {
+	select {
+	case <-s.stop:
+		fmt.Println("stop portaudio streaming")
+		chk(str.Stop())
+		s.stopped <- 1
+		return true
+	default:
+	}
+	return false
 }
