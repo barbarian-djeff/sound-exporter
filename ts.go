@@ -8,7 +8,7 @@ const tsCollectingTimeSec = 1
 
 type timeSerieData struct {
 	start time.Time
-	total int
+	total int64
 	count int
 }
 

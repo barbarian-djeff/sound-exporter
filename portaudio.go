@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gordonklaus/portaudio"
+	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"time"
@@ -11,11 +12,11 @@ import (
 // data is passed by the reader to the collectors (peak and minute) for a specific time
 type data struct {
 	time   time.Time
-	volume int     // current volume at 'time'
+	volume int64   // current volume at 'time'
 	avg    float64 // global average at 'time'
 }
 
-func newData(v int, avg float64) data {
+func newData(v int64, avg float64) data {
 	return data{time.Now(), v, avg}
 }
 
@@ -33,19 +34,19 @@ func readFromPortAudio(sync portaudioSync, channels ...chan data) {
 
 	sa := NewSoundAggregator()
 	count := 0
-	var sum int
+	var sum int64
 	for {
 		err := stream.Read()
 		if err != nil {
-			fmt.Println(err)
+			logger.Error("fail to read stream", zap.Error(err))
 		} else {
 			rms, ok := sa.Rms(in)
 			if ok && rms >= 0 {
-				vol := int(rms)
+				// rms is the audio power per 1/4 second
 				count++
-				sum += vol
+				sum += rms
 				avg := float64(sum) / float64(count)
-				data := newData(vol, avg)
+				data := newData(rms, avg)
 				for _, ch := range channels {
 					ch <- data
 				}

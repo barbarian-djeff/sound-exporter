@@ -11,7 +11,7 @@ import (
 var (
 	re              = regexp.MustCompile(`\s*(\d*)\s*`)
 	logger, _       = zap.NewDevelopment()
-	maxVolume       = 100000.
+	maxVolume       = 4000.
 	volumeThreshold = 3.
 )
 
@@ -47,12 +47,17 @@ func collectPeaks(dataCh chan data) {
 	for {
 		d := <-dataCh
 		globalAvg := d.avg
+		// receive 4 rms per sec but merge them into one sec for peak detection
 		ok, v, t := ts.collect(d)
 		if ok {
+			ts = newTSData()
 			mux.Lock()
+			// add to the serie for display in the chart
 			addVolume(t, v)
 			mux.Unlock()
+
 			if v > volumeThreshold*globalAvg || v > maxVolume {
+				// peak detectec
 				p := newPeak(t, v, Black, globalAvg, Black)
 				logger.Info("peak collected", zap.Time("time", t), zap.Float64("vol", v), zap.Float64("avg", globalAvg))
 				mux.Lock()
@@ -61,7 +66,6 @@ func collectPeaks(dataCh chan data) {
 				avgVolume = globalAvg
 				mux.Unlock()
 			}
-			ts = newTSData()
 		}
 	}
 }
@@ -92,8 +96,9 @@ func updateMessage() string {
 
 func collectMinutes(dataCh chan data) {
 	currentMinute := -1
-	mSum := 0.
-	mCount := 1.
+	var mSum int64
+	var mCount int64
+	mCount = 1
 
 	for {
 		d := <-dataCh
@@ -103,8 +108,8 @@ func collectMinutes(dataCh chan data) {
 			currentMinute = m
 		}
 		if m != currentMinute {
-			nm := newMinute(currentMinute, mSum/mCount, Black)
-
+			nm := newMinute(currentMinute, float64(mSum)/float64(mCount), Black)
+			logger.Info("count per minute", zap.Int64("count", mCount))
 			// store info
 			mux.Lock()
 			minutes = addMinute(minutes, nm)
@@ -113,10 +118,10 @@ func collectMinutes(dataCh chan data) {
 
 			// next minute: reset counters
 			currentMinute = m
-			mSum = float64(d.volume)
+			mSum = d.volume
 			mCount = 1
 		} else {
-			mSum += float64(d.volume)
+			mSum += d.volume
 			mCount++
 		}
 	}

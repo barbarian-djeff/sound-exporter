@@ -8,14 +8,12 @@ import (
 func NewSoundAggregator() SoundAggregator {
 	return SoundAggregator{
 		start: time.Now(),
-		count: .0,
 		sum:   .0,
 	}
 }
 
 type SoundAggregator struct {
 	start time.Time
-	count int64
 	sum   float64
 }
 
@@ -23,14 +21,12 @@ type SoundAggregator struct {
 func (s *SoundAggregator) Rms(data []int32) (int64, bool) {
 	rms := rms(data)
 	if time.Since(s.start) > 250000000 { // 1/4s
-		avg := int64(rms / float64(s.count))
+		res := s.sum
 		s.start = time.Now()
 		s.sum = rms
-		s.count = 1
-		return avg, true
+		return int64(res / 1000000.), true
 	}
 	s.sum += rms
-	s.count++
 	return 0, false
 }
 
