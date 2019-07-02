@@ -27,7 +27,10 @@ func serveVolumes() {
 	})
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./html/css/"))))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./html/js/"))))
-	logger.Fatal("fail to serve", zap.Error(http.ListenAndServe("localhost:8090", nil)))
+
+	url := "localhost:8090"
+	logger.Info("serve results", zap.String("url", url))
+	logger.Fatal("fail to serve", zap.Error(http.ListenAndServe(url, nil)))
 }
 
 func drawChart(res http.ResponseWriter, req *http.Request) {
